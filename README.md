@@ -98,10 +98,10 @@ python design/make_holiday_posters.py           # holiday posters from design/ho
 - Holiday backgrounds in `design/holiday_backgrounds/` are AI-generated illustrations without text.
 - Card backgrounds and the "EA" logo are drawn by `design/make_demo_backgrounds.py`; the original artwork is not included.
 
-## Қысқаша (KZ)
+## Кратко (RU)
 
-Компания қызметкерлерінің туған күндерін еске салатын Telegram-бот. Күн сайын таңертең туған күн иесінің
-есімі жазылған құттықтау карточкасын салып, Gemini арқылы қазақша құттықтау мәтінін дайындайды.
-Қазақстанның мерекелерін, демалыс күндерінің ауысуын ескереді, Google-таблицамен синхрондалады.
-Telegram Mini App ішінде команданың туған күндер күнтізбесі бар. Демо: `python demo.py` — токенсіз жұмыс істейді,
-барлық деректер кездейсоқ жасалған.
+Telegram-бот, напоминающий о днях рождения сотрудников. Каждое утро рисует поздравительную карточку с именем
+именинника и готовит текст поздравления на казахском через Gemini.
+Учитывает праздники Казахстана и переносы выходных, синхронизируется с Google-таблицей.
+Внутри Telegram Mini App — календарь дней рождения команды. Демо: `python demo.py` — работает без токена,
+все данные сгенерированы случайно.
