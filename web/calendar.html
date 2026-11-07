@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EduApp — туған күндер</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* EduApp дизайн-жүйесі */
+  :root {
+    --bg: #F4F6FF; --surface: #FFFFFF; --text: #1E2030; --muted: #6D7885; --line: #E6E0EC;
+    --violet: #6E4FD8; --violet-600: #5B3CC4; --violet-deep: #2E0F4C; --violet-soft: #F2EFFC;
+    --blue: #2857FC; --gold: #F4CD4B; --gold-hover: #F7D766; --orange: #E8590C;
+    --spring: cubic-bezier(.34,1.56,.64,1); --ease: cubic-bezier(.2,.7,.2,1);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 0 12px; }
+
+  /* Жоғарғы күлгін блок */
+  .hero { position: relative; overflow: hidden; margin: 8px 0 0; border-radius: 28px; padding: 18px 18px 22px; color: #fff;
+    background-image:
+      radial-gradient(70% 60% at 10% 6%, rgba(110,79,216,.72), transparent 60%),
+      radial-gradient(55% 55% at 94% 26%, rgba(40,87,252,.46), transparent 62%),
+      radial-gradient(50% 45% at 55% 108%, rgba(163,92,246,.42), transparent 60%),
+      linear-gradient(165deg, #2E0F4C 0%, #1A0B3A 45%, #0E1236 100%); }
+  .hero::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .22;
+    background-image: radial-gradient(rgba(255,255,255,.55) 1px, transparent 1px); background-size: 24px 24px;
+    -webkit-mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent); mask-image: radial-gradient(80% 70% at 50% 30%, #000, transparent); }
+  .hero > * { position: relative; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo svg { width: 36px; height: 36px; flex: none; }
+  .logo b { display: block; font-size: 19px; letter-spacing: -.02em; line-height: 1.05; }
+  .logo small { display: block; font-size: 12px; color: rgba(255,255,255,.65); line-height: 1.1; }
+  .eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; padding: 6px 12px; border-radius: 999px;
+    background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); color: #EDE7FF; font-size: 13px; font-weight: 500; }
+  .eyebrow i { width: 7px; height: 7px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 0 4px rgba(244,205,75,.2); }
+  .next-name { margin-top: 12px; font-size: 26px; line-height: 1.12; font-weight: 700; letter-spacing: -.03em; }
+  .next-meta { margin-top: 6px; color: rgba(255,255,255,.78); font-size: 14.5px; }
+  .next-row { display: flex; align-items: flex-end; gap: 12px; }
+  .next-row .grow { flex: 1; min-width: 0; }
+  .count { text-align: center; flex: none; padding: 8px 12px; border-radius: 16px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+  .count b { display: block; font-size: 28px; line-height: 1; color: var(--gold); font-weight: 700; }
+  .count span { font-size: 11.5px; color: rgba(255,255,255,.7); }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; padding: 0 20px; border-radius: 999px;
+    font-weight: 600; font-size: 15px; transition: transform .3s var(--spring), background-color .2s, box-shadow .3s var(--ease); }
+  .btn svg { width: 16px; height: 16px; transition: transform .3s var(--spring); }
+  .btn:active { transform: scale(.97); }
+  .btn-gold { background: var(--gold); color: #1B1300; box-shadow: 0 12px 30px -12px rgba(244,205,75,.75), inset 0 -2px 0 rgba(0,0,0,.08); }
+  .btn-gold:hover { background: var(--gold-hover); }
+  .btn-gold:hover svg { transform: translateX(3px); }
+  .btn-soft { background: var(--violet-soft); color: var(--violet-600); }
+  .hero .btn { margin-top: 16px; }
+
+  /* Ақ карточкалар */
+  .card { background: var(--surface); border-radius: 24px; padding: 16px; margin-top: 12px; border: 1px solid rgba(230,224,236,.7);
+    box-shadow: 0 18px 40px -30px rgba(46,15,76,.35); }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 8px; }
+
+  .month { display: flex; align-items: center; gap: 8px; }
+  .month h2 { flex: 1; margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.02em; }
+  .icon-btn { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--violet-soft); color: var(--violet-600); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .pill { height: 36px; padding: 0 12px; border-radius: 12px; background: var(--violet-soft); color: var(--violet-600); font-size: 13.5px; font-weight: 600; }
+
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-top: 12px; text-align: center; }
+  .wd { font-size: 12px; font-weight: 600; color: var(--muted); padding-bottom: 4px; }
+  .wd.we { color: #B58BE8; }
+  .day { position: relative; aspect-ratio: 1 / 1; max-height: 50px; display: grid; place-items: center; border-radius: 14px; font-size: 15px;
+    font-weight: 500; cursor: pointer; transition: background-color .15s, transform .25s var(--spring); }
+  .day:active { transform: scale(.94); }
+  .day.other { visibility: hidden; }
+  .day.past { color: #A9AFB8; }
+  .day.bday { color: var(--violet-600); font-weight: 700;
+    background-color: var(--violet-soft);
+    background-image:
+      radial-gradient(circle at 18% 24%, #F4CD4B 0 1.6px, transparent 2.2px),
+      radial-gradient(circle at 82% 78%, #B58BE8 0 1.6px, transparent 2.2px),
+      radial-gradient(circle at 22% 80%, rgba(40,87,252,.45) 0 1.3px, transparent 1.9px),
+      radial-gradient(circle at 60% 12%, rgba(232,89,12,.45) 0 1.2px, transparent 1.8px); }
+  .day.bday { padding-bottom: 12px; }
+  .day .cake { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 13px; height: 13px; color: var(--violet); }
+  .day .count-badge { position: absolute; top: 3px; right: 5px; font-size: 10px; font-weight: 700; color: var(--violet); }
+  .day.sel.bday { background-image:
+      radial-gradient(circle at 18% 24%, #F4CD4B 0 1.6px, transparent 2.2px),
+      radial-gradient(circle at 82% 78%, rgba(255,255,255,.75) 0 1.6px, transparent 2.2px),
+      radial-gradient(circle at 22% 80%, rgba(255,255,255,.5) 0 1.3px, transparent 1.9px),
+      radial-gradient(circle at 60% 12%, #F4CD4B 0 1.2px, transparent 1.8px); }
+  .day.sel .cake { color: #fff; }
+  .day.sel .count-badge { color: var(--gold); }
+  .day.holiday { color: var(--orange); font-weight: 600; }
+  .day.today { box-shadow: inset 0 0 0 2px var(--gold); }
+  .day.sel { background: var(--violet); color: #fff; box-shadow: 0 8px 18px -8px rgba(110,79,216,.8); }
+  .day.sel.today { box-shadow: 0 8px 18px -8px rgba(110,79,216,.8), inset 0 0 0 2px var(--gold); }
+
+  .legend { display: flex; gap: 14px; margin-top: 12px; font-size: 12.5px; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 12px; height: 12px; border-radius: 4px; }
+
+  .person { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); }
+  .person:first-of-type { border-top: 0; }
+  .ava { width: 42px; height: 42px; flex: none; border-radius: 14px; display: grid; place-items: center; font-weight: 700; font-size: 15px;
+    background: var(--violet-soft); color: var(--violet-600); }
+  .ava.hol { background: #FFF1E8; color: var(--orange); }
+  .who { flex: 1; min-width: 0; }
+  .who b { display: block; font-size: 15px; font-weight: 600; line-height: 1.25; }
+  .who span { display: block; font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .me { font-size: 11px; font-weight: 600; color: var(--violet-600); background: var(--violet-soft); border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+  .person .btn { height: 34px; padding: 0 12px; font-size: 13px; }
+  .date-chip { width: 42px; flex: none; text-align: center; border-radius: 14px; padding: 4px 0; background: var(--bg); }
+  .date-chip b { display: block; font-size: 16px; line-height: 1.15; }
+  .date-chip span { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .empty { color: var(--muted); font-size: 14px; padding: 6px 0 2px; }
+
+  .toast { position: fixed; left: 50%; bottom: 22px; transform: translate(-50%, 20px); opacity: 0; transition: .25s var(--ease); z-index: 20;
+    background: var(--violet-deep); color: #fff; padding: 10px 16px; border-radius: 14px; font-size: 14px; font-weight: 500; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="zg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a4fd6"/><stop offset="1" stop-color="#2857fc"/></linearGradient></defs>
+  <symbol id="logo" viewBox="0 0 192 192"><rect x="4" y="4" width="184" height="184" rx="44" fill="url(#zg)"/><text x="96" y="122" text-anchor="middle" font-family="Arial, sans-serif" font-size="78" font-weight="700" fill="#fff">EA</text></symbol>
+  <symbol id="arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="left" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="cake" viewBox="0 0 24 24"><path d="M12 2.2c1.1 1.2 1.6 2.1 1.6 2.8a1.6 1.6 0 0 1-3.2 0c0-.7.5-1.6 1.6-2.8z" fill="#F4CD4B"/><rect x="11" y="7" width="2" height="3.6" rx="1" fill="currentColor" opacity=".55"/><rect x="3.5" y="10.4" width="17" height="10.4" rx="3.2" fill="currentColor"/><path d="M3.8 14.6c1.7 1.3 3.4 1.3 4.2 0s2.5-1.3 4 0 2.5 1.3 4 0 2.5-1.3 4.2 0" fill="none" stroke="#F4CD4B" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="wrap">
+  <section class="hero" id="hero">
+    <div class="logo"><svg aria-hidden="true"><use href="#logo"/></svg><span><b>eduapp</b><small>Команданың туған күндері</small></span></div>
+    <div id="next"></div>
+  </section>
+
+  <section class="card">
+    <div class="month">
+      <h2 id="title">…</h2>
+      <button class="pill" id="todayBtn">Бүгін</button>
+      <button class="icon-btn" id="prev" aria-label="Алдыңғы ай"><svg><use href="#left"/></svg></button>
+      <button class="icon-btn" id="next-m" aria-label="Келесі ай"><svg><use href="#right"/></svg></button>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="legend"><span><svg style="width:14px;height:14px;color:var(--violet)"><use href="#cake"/></svg>Туған күн</span><span><i style="box-shadow:inset 0 0 0 2px var(--gold)"></i>Бүгін</span><span id="legendHol"><i style="background:#FFF1E8"></i>Мереке</span></div>
+  </section>
+
+  <section class="card" id="dayCard"></section>
+  <section class="card" id="monthCard"></section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const tg = window.Telegram && Telegram.WebApp;
+const MONTHS = ["Қаңтар","Ақпан","Наурыз","Сәуір","Мамыр","Маусым","Шілде","Тамыз","Қыркүйек","Қазан","Қараша","Желтоқсан"];
+const MONTHS_GEN = ["қаңтар","ақпан","наурыз","сәуір","мамыр","маусым","шілде","тамыз","қыркүйек","қазан","қараша","желтоқсан"];
+const MONTHS_SHORT = ["қаң","ақп","нау","сәу","мам","мау","шіл","там","қыр","қаз","қар","жел"];
+const WD = ["Дс","Сс","Ср","Бс","Жм","Сб","Жс"];
+const WD_FULL = ["жексенбі","дүйсенбі","сейсенбі","сәрсенбі","бейсенбі","жұма","сенбі"];
+let DATA, TODAY, view, selected;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const parse = iso => { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d); };
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const isLeap = y => (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+const initials = n => { const w = n.split(/\s+/); return ((w[1] || w[0])[0] + (w[1] ? w[0][0] : "")).toUpperCase(); };
+function toast(t) { const el = $("#toast"); el.textContent = t; el.classList.add("on"); setTimeout(() => el.classList.remove("on"), 2200); }
+function haptic(ok) { try { ok ? tg.HapticFeedback.notificationOccurred("success") : tg.HapticFeedback.selectionChanged(); } catch (e) {} }
+
+async function api(path, body) {
+  const r = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(Object.assign({ initData: tg ? tg.initData : "" }, body || {})) });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(data.error || (r.status === 403 ? "Доступ жоқ — ботта /start басыңыз" : "Қате " + r.status));
+  return data;
+}
+
+// Туған күн берілген жылы қай күні (29 ақпан → кібісе емес жылы 28 ақпан)
+function bdayIn(p, y) { return new Date(y, p.month - 1, p.month === 2 && p.day === 29 && !isLeap(y) ? 28 : p.day); }
+function ageIn(p, y) { return p.age ? p.age + (y - parse(p.date).getFullYear()) : null; }
+const peopleOn = d => DATA.people.filter(p => sameDay(bdayIn(p, d.getFullYear()), d));
+const holidaysOn = d => (DATA.holidays || []).filter(h => sameDay(parse(h.date), d));
+
+function renderNext() {
+  const list = DATA.people.filter(p => !p.me);
+  if (!list.length) { $("#next").innerHTML = ""; return; }
+  const first = list[0], same = list.filter(p => p.days === first.days), d = parse(first.date);
+  const names = same.map(p => esc(p.name)).join(", ");
+  const when = first.days === 0 ? "Бүгін туған күн" : first.days === 1 ? "Ертең туған күн" : "Келесі туған күн";
+  const meta = `${d.getDate()} ${MONTHS_GEN[d.getMonth()]}, ${WD_FULL[d.getDay()]}` +
+    (same.length === 1 ? ` · ${esc(first.position || first.dept || "")}` : "");
+  $("#next").innerHTML = `
+    <div class="eyebrow"><svg style="width:15px;height:15px;color:#B58BE8"><use href="#cake"/></svg>${when}</div>
+    <div class="next-row"><div class="grow"><div class="next-name">${names}</div><div class="next-meta">${meta}</div></div>
+      ${first.days > 0 ? `<div class="count"><b>${first.days}</b><span>${first.days === 1 ? "күн" : "күн қалды"}</span></div>` : ""}</div>
+`;
+}
+
+function renderGrid() {
+  const y = view.getFullYear(), m = view.getMonth();
+  $("#title").textContent = `${MONTHS[m]} ${y}`;
+  const shift = (new Date(y, m, 1).getDay() + 6) % 7, days = new Date(y, m + 1, 0).getDate();
+  let html = WD.map((w, i) => `<div class="wd ${i > 4 ? "we" : ""}">${w}</div>`).join("");
+  for (let i = 0; i < shift; i++) html += `<div class="day other"></div>`;
+  for (let n = 1; n <= days; n++) {
+    const d = new Date(y, m, n), ppl = peopleOn(d), hol = holidaysOn(d);
+    const cls = ["day", ppl.length && "bday", hol.length && "holiday", sameDay(d, TODAY) && "today",
+      sameDay(d, selected) && "sel", d < TODAY && !ppl.length && "past"].filter(Boolean).join(" ");
+    const deco = ppl.length ? `<svg class="cake" aria-hidden="true"><use href="#cake"/></svg>` +
+      (ppl.length > 1 ? `<span class="count-badge">×${ppl.length}</span>` : "") : "";
+    html += `<div class="${cls}" data-day="${n}" ${ppl.length ? `aria-label="${n} — туған күн"` : ""}>${n}${deco}</div>`;
+  }
+  $("#grid").innerHTML = html;
+  $("#legendHol").style.display = DATA.holidays && DATA.holidays.length ? "" : "none";
+}
+
+function personRow(p, d) {
+  const age = ageIn(p, d.getFullYear());
+  const sub = [p.position, p.dept, age ? `${age} жас` : ""].filter(Boolean).join(" · ");
+  return `<div class="person"><div class="ava">${esc(initials(p.name))}</div>
+    <div class="who"><b>${esc(p.name)}${p.me ? '<span class="me">сіз</span>' : ""}</b><span>${esc(sub) || "—"}</span></div></div>`;
+}
+
+function renderDay() {
+  const d = selected, ppl = peopleOn(d), hol = holidaysOn(d);
+  let html = `<div class="card-title">${d.getDate()} ${MONTHS_GEN[d.getMonth()]}, ${WD_FULL[d.getDay()]}${sameDay(d, TODAY) ? " · бүгін" : ""}</div>`;
+  html += hol.map(h => `<div class="person"><div class="ava hol">KZ</div><div class="who"><b>${esc(h.name)}</b><span>Мереке</span></div></div>`).join("");
+  html += ppl.map(p => personRow(p, d)).join("");
+  if (!ppl.length && !hol.length) html += `<div class="empty">Бұл күні туған күн жоқ.</div>`;
+  $("#dayCard").innerHTML = html;
+}
+
+function renderMonth() {
+  const y = view.getFullYear(), m = view.getMonth();
+  const list = DATA.people.filter(p => bdayIn(p, y).getMonth() === m).sort((a, b) => bdayIn(a, y) - bdayIn(b, y));
+  let html = `<div class="card-title">${MONTHS[m]} айында · ${list.length} туған күн</div>`;
+  html += list.map(p => {
+    const d = bdayIn(p, y), age = ageIn(p, y);
+    return `<div class="person" data-goto="${iso(d)}" style="cursor:pointer">
+      <div class="date-chip"><b>${d.getDate()}</b><span>${MONTHS_SHORT[m]}</span></div>
+      <div class="who"><b>${esc(p.name)}${p.me ? '<span class="me">сіз</span>' : ""}</b>
+        <span>${esc([p.position, age ? age + " жас" : ""].filter(Boolean).join(" · ")) || "—"}</span></div></div>`;
+  }).join("") || `<div class="empty">Бұл айда туған күн жоқ.</div>`;
+  if (DATA.missing) html += `<div class="empty" style="margin-top:8px;font-size:13px">Тағы ${DATA.missing} әріптестің туған күні белгісіз — ботта /join арқылы жазуға болады.</div>`;
+  $("#monthCard").innerHTML = html;
+}
+
+function render() { renderNext(); renderGrid(); renderDay(); renderMonth(); }
+
+function firstInMonth() {
+  if (view.getFullYear() === TODAY.getFullYear() && view.getMonth() === TODAY.getMonth()) return TODAY;
+  const y = view.getFullYear(), m = view.getMonth();
+  const ds = DATA.people.map(p => bdayIn(p, y)).filter(d => d.getMonth() === m).sort((a, b) => a - b);
+  return ds[0] || new Date(y, m, 1);
+}
+function shiftMonth(k) { view = new Date(view.getFullYear(), view.getMonth() + k, 1); selected = firstInMonth(); haptic(); render(); }
+
+document.addEventListener("click", e => {
+  const day = e.target.closest("[data-day]");
+  if (day) { selected = new Date(view.getFullYear(), view.getMonth(), +day.dataset.day); haptic(); render(); return; }
+  const go = e.target.closest("[data-goto]");
+  if (go) { selected = parse(go.dataset.goto); render(); $("#dayCard").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+});
+$("#prev").onclick = () => shiftMonth(-1);
+$("#next-m").onclick = () => shiftMonth(1);
+$("#todayBtn").onclick = () => { view = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1); selected = TODAY; haptic(); render(); };
+
+function demoData(now) {
+  const add = n => { const d = new Date(now); d.setDate(d.getDate() + n); return d; };
+  const mk = (name, pos, dept, n, age, me) => { const d = add(n);
+    return { name, position: pos, dept, day: d.getDate(), month: d.getMonth() + 1, date: iso(d), days: n, age, me: !!me, wishes: 0, myWish: null }; };
+  return { demo: true, today: iso(now), missing: 3, people: [
+    // DEMO_PEOPLE:BEGIN (generated by scripts/generate_demo_data.py)
+    mk("Сұлтанов Әлихан", "Старший эксперт", "Content", 3, 34), mk("Қасенова Айгерім", "UI/UX-дизайнер", "IT", 9, 42),
+    mk("Сұлтанов Жасұлан", "Автор-разработчик контента", "Content", 17, 27), mk("Жұмабаева Балнұр", "Отдел продаж", "Sales", 23, 34),
+    mk("Тұрсынова Динара", "Отдел продаж", "Sales", 40, 27, true)],
+    // DEMO_PEOPLE:END
+    holidays: [{ name: "Тәуелсіздік күні", date: iso(add(12)), days: 12 }] };
+}
+
+(async function main() {
+  if (tg) { tg.ready(); tg.expand(); try { tg.setHeaderColor("#F4F6FF"); tg.setBackgroundColor("#F4F6FF"); } catch (e) {} }
+  const demo = new URLSearchParams(location.search).has("demo") || !(tg && tg.initData);
+  try { DATA = demo ? demoData(new Date()) : await api("/api/calendar"); }
+  catch (e) { $("#next").innerHTML = `<div class="next-meta" style="margin-top:16px">${esc(e.message)}</div>`; return; }
+  TODAY = parse(DATA.today);
+  view = new Date(TODAY.getFullYear(), TODAY.getMonth(), 1);
+  selected = TODAY;
+  render();
+})();
+</script>
+</body>
+</html>

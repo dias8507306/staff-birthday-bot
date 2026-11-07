@@ -1,0 +1,36 @@
+name: Дни рождения
+
+# Сам бот живёт на PythonAnywhere. Бесплатный тариф не умеет запускать задачи по расписанию,
+# поэтому его «будит» GitHub: стучится на /morning, и утренняя рассылка идёт с сервера.
+# Расписание GitHub опаздывает на 5–8 часов, поэтому стучимся КАЖДЫЙ ЧАС:
+# до 09:00 по Алматы сервер ничего не шлёт (not_before=9), первый запрос после 09:00 рассылает,
+# остальные отвечают «сегодня уже отправлено» за доли секунды. Ещё один будильник — Apps Script таблицы.
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Прислать проверочное сообщение с ближайшими днями рождения"
+        type: boolean
+        default: true
+
+jobs:
+  morning:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Утренняя рассылка на сервере бота
+        run: |
+          # BOT_SERVER_URL — секрет репозитория, например https://YOUR_USERNAME.pythonanywhere.com
+          if [ -z "${{ secrets.BOT_SERVER_URL }}" ]; then echo "BOT_SERVER_URL не задан — пропускаю (демо-репозиторий)."; exit 0; fi
+          url="${{ secrets.BOT_SERVER_URL }}/morning?not_before=9&test=${{ inputs.test && '1' || '0' }}"
+          # Прокси PythonAnywhere иногда отвечает 503 — до трёх попыток.
+          for attempt in 1 2 3; do
+            if curl --fail-with-body -sS -X POST --max-time 240 \
+                 -H "X-Morning-Secret: ${{ secrets.WEBHOOK_SECRET }}" "$url"; then
+              exit 0
+            fi
+            sleep 60
+          done
+          exit 1

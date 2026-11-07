@@ -1,0 +1,27 @@
+# secrets
+.env
+.env.*
+!.env.example
+apps_script.gs
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# runtime data
+*.log
+data/bot.log*
+data/*.tmp
+data/state.pickle
+*.db
+*.sqlite
+
+# demo output / misc
+output/
+cards/_test_*.jpg
+node_modules/
+.vercel/
+.idea/
+.vscode/
